@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kafka Chit Chat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<!-- Google Material Symbols Rounded (mimics some IG icons decently) -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"/>
+
+<script id="tailwind-config">
+tailwind.config = {
+    darkMode: "class",
+    theme: {
+        extend: {
+            fontFamily: {
+                sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+            },
+            colors: {
+                igBlack: '#000000',
+                igBorder: '#262626',
+                igGrayText: '#A8A8A8',
+                igPrimaryText: '#F5F5F5',
+                igHover: '#1A1A1A',
+                igInputBg: '#262626',
+                igOutgoing: '#3797F0',
+            }
+        }
+    }
+}
+</script>
+<style>
+    body {
+        background-color: #000000;
+        color: #F5F5F5;
+        font-family: 'Inter', sans-serif;
+        overflow: hidden; /* Prevent body scroll, everything is fixed */
+    }
+    
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .no-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+</style>
+</head>
+<body class="bg-igBlack h-screen w-screen flex justify-center antialiased">
+    
+    <!-- Centralized Chat Interface -->
+    <main class="w-full max-w-4xl h-full flex flex-col border-x border-igBorder bg-igBlack relative">
+        
+        <!-- Sticky Chat Header -->
+        <header class="h-[75px] w-full flex items-center justify-between border-b border-igBorder px-6 z-10 flex-shrink-0 bg-igBlack">
+            
+            <!-- Left Side: Chat context -->
+            <div class="flex items-center gap-3 cursor-pointer">
+                <div class="w-11 h-11 rounded-full overflow-hidden bg-igBorder flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-rounded text-white">dns</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-base font-semibold leading-tight">Cluster Event Room</span>
+                    <span class="text-xs text-igGrayText leading-tight mt-0.5">End-to-End Enterprise Kafka Stream</span>
+                </div>
+            </div>
+
+            <!-- Right Side: User Name Switcher -->
+            <div class="flex items-center gap-3 relative">
+                <label for="usernameSelect" class="text-xs text-igGrayText font-semibold uppercase tracking-wider hidden sm:block">Chatting As:</label>
+                <div class="relative bg-igHover rounded-full px-4 py-2 border border-igBorder flex items-center gap-2 cursor-pointer hover:bg-[#262626] transition-colors focus-within:border-igGrayText">
+                    <span class="material-symbols-rounded text-igGrayText text-sm">person</span>
+                    <!-- Simple text input to type whatever name you want -->
+                    <input type="text" id="usernameInput" value="Alex" class="bg-transparent border-none p-0 focus:ring-0 text-sm font-bold text-igPrimaryText w-24 placeholder-igGrayText" placeholder="Enter Name..." autocomplete="off">
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Chat Feed Area -->
+        <div id="chatContainer" class="flex-grow overflow-y-auto w-full no-scrollbar px-4 sm:px-8 pt-6 pb-2 space-y-[6px] flex flex-col">
+            <!-- Starting Splash Screen -->
+            <div class="w-full flex flex-col items-center justify-center py-6 mt-6 mb-10">
+                <div class="w-24 h-24 rounded-full overflow-hidden bg-igBorder flex items-center justify-center shadow-2xl mb-4">
+                    <span class="material-symbols-rounded text-white text-5xl">dns</span>
+                </div>
+                <h2 class="text-xl font-bold">Cluster Event Room</h2>
+                <p class="text-sm text-igGrayText mt-1">Distributed System Simulator</p>
+            </div>
+            <!-- Dynamic Messages Go Here -->
+        </div>
+
+        <!-- Instagram Styled Input Pill -->
+        <footer class="p-4 pt-2 mb-2 px-4 sm:px-8 flex-shrink-0 bg-igBlack">
+            <form id="chatForm" class="w-full relative flex items-center border border-igBorder rounded-full px-2 py-1.5 min-h-[44px] bg-igBlack focus-within:border-igGrayText transition-colors">
+                
+                <button type="button" class="p-2 text-igPrimaryText flex items-center justify-center rounded-full hover:bg-igHover transition-colors flex-shrink-0">
+                    <span class="material-symbols-rounded text-2xl">mood</span>
+                </button>
+                
+                <input id="messageInput" autocomplete="off" class="flex-grow bg-transparent border-none focus:ring-0 text-sm text-igPrimaryText placeholder-igGrayText px-2 min-w-0" placeholder="Message..." type="text" />
+                
+                <!-- Inner Action Icons -->
+                <div class="flex items-center gap-1 flex-shrink-0 transition-opacity" id="inputActionIcons">
+                    <button type="button" class="p-2 text-igPrimaryText flex items-center justify-center rounded-full hover:bg-igHover transition-colors">
+                        <span class="material-symbols-rounded text-2xl">mic</span>
+                    </button>
+                    <button type="button" class="p-2 text-igPrimaryText flex items-center justify-center rounded-full hover:bg-igHover transition-colors">
+                        <span class="material-symbols-rounded text-2xl">image</span>
+                    </button>
+                    <button type="button" class="p-2 text-igPrimaryText flex items-center justify-center rounded-full hover:bg-igHover transition-colors">
+                        <span class="material-symbols-rounded text-2xl">favorite</span>
+                    </button>
+                </div>
+
+                <!-- Disappearing Send Action Button -->
+                <button type="submit" id="sendButton" class="hidden font-semibold text-sm text-[#0095F6] hover:text-[#E0F1FF] px-3 mr-1 transition-colors">
+                    Send
+                </button>
+            </form>
+        </footer>
+
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
