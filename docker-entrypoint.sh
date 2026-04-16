@@ -8,20 +8,28 @@ echo "=========================================="
 # 1. Start ZooKeeper
 echo "[1/3] Starting ZooKeeper..."
 /opt/zookeeper/bin/zkServer.sh start
-sleep 3
+sleep 5
 
-# Wait for ZooKeeper readiness
+# Wait for ZooKeeper readiness (try ruok first, fallback to port check)
 echo "Waiting for ZooKeeper..."
-for i in $(seq 1 30); do
+for i in $(seq 1 40); do
+  # Try ruok command first
   if echo ruok | nc -w 2 localhost 2181 2>/dev/null | grep -q imok; then
-    echo "ZooKeeper is ready!"
+    echo "ZooKeeper is ready! (ruok confirmed)"
     break
   fi
-  if [ "$i" -eq 30 ]; then
-    echo "ZooKeeper failed to start!"
+  # Fallback: just check if the port is accepting connections
+  if nc -z -w 2 localhost 2181 2>/dev/null; then
+    echo "ZooKeeper port 2181 is open, proceeding..."
+    sleep 2
+    break
+  fi
+  if [ "$i" -eq 40 ]; then
+    echo "ZooKeeper failed to start! Showing logs:"
+    cat /opt/zookeeper/logs/*.log 2>/dev/null || echo "No logs found"
     exit 1
   fi
-  echo "  Waiting... ($i/30)"
+  echo "  Waiting... ($i/40)"
   sleep 1
 done
 
