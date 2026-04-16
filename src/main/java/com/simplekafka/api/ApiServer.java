@@ -5,7 +5,9 @@ import com.simplekafka.client.SimpleKafkaConsumer;
 import com.simplekafka.client.SimpleKafkaProducer;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import io.javalin.http.staticfiles.Location;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +18,7 @@ import java.util.logging.Logger;
 /**
  * REST API Server built with Javalin.
  * Acts as the middleman between the web frontend and the Kafka cluster.
+ * In production, also serves the frontend static files.
  */
 public class ApiServer {
     private static final Logger LOGGER = Logger.getLogger(ApiServer.class.getName());
@@ -37,8 +40,11 @@ public class ApiServer {
     }
 
     public ApiServer() throws Exception {
-        String brokerHost = "localhost";
-        int brokerPort = 9091;
+        // Read broker connection from environment (defaults for local dev)
+        String brokerHost = System.getenv("BROKER_HOST") != null ? System.getenv("BROKER_HOST") : "localhost";
+        int brokerPort = System.getenv("BROKER_PORT") != null ? Integer.parseInt(System.getenv("BROKER_PORT")) : 9091;
+
+        LOGGER.info("Connecting to broker at " + brokerHost + ":" + brokerPort);
 
         // Initialize producer to create the chat-topic if it doesn't exist
         this.producer = new SimpleKafkaProducer(brokerHost, brokerPort, TOPIC);
@@ -56,15 +62,28 @@ public class ApiServer {
     }
 
     public void start() {
-        // Start lightweight HTTP server on port 8082 with CORS allowed
+        // Read port from environment (Render assigns PORT dynamically)
+        int port = System.getenv("PORT") != null ? Integer.parseInt(System.getenv("PORT")) : 8082;
+
+        // Start lightweight HTTP server with CORS allowed
         Javalin app = Javalin.create(config -> {
             config.plugins.enableCors(cors -> cors.add(it -> it.anyHost()));
-        }).start(8082);
+
+            // Serve frontend static files if the directory exists (production mode)
+            String frontendDir = System.getenv("FRONTEND_DIR") != null ? System.getenv("FRONTEND_DIR") : "frontend-dist";
+            File dir = new File(frontendDir);
+            if (dir.exists() && dir.isDirectory()) {
+                config.staticFiles.add(frontendDir, Location.EXTERNAL);
+                LOGGER.info("Serving frontend from: " + dir.getAbsolutePath());
+            } else {
+                LOGGER.info("No frontend directory found at '" + frontendDir + "' — API-only mode (use Vite dev server for frontend)");
+            }
+        }).start(port);
 
         app.get("/api/messages", this::getMessages);
         app.post("/api/messages", this::sendMessage);
 
-        LOGGER.info("API Server running on http://localhost:8082");
+        LOGGER.info("API Server running on http://localhost:" + port);
 
         // Start reading messages seamlessly across dynamically assigned partitions
         for (SimpleKafkaConsumer c : consumers) {

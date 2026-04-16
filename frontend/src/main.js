@@ -1,6 +1,6 @@
 import './style.css'
 
-const API_BASE = 'http://localhost:8082/api/messages';
+const API_BASE = '/api/messages';
 
 const chatContainer = document.getElementById('chatContainer');
 const chatForm = document.getElementById('chatForm');

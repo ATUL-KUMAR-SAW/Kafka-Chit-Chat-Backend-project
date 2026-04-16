@@ -54,8 +54,9 @@ public class SimpleKafkaBroker {
             dataDir.mkdirs();
         }
 
-        // Initialize ZooKeeper client
-        this.zkClient = new ZookeeperClient("localhost", zkPort);
+        // Initialize ZooKeeper client (host configurable via env for cloud deployment)
+        String zkHost = System.getenv("ZK_HOST") != null ? System.getenv("ZK_HOST") : "localhost";
+        this.zkClient = new ZookeeperClient(zkHost, zkPort);
     }
 
     /**

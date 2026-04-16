@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: kafka-chit-chat
+    runtime: docker
+    plan: free
+    healthCheckPath: /
