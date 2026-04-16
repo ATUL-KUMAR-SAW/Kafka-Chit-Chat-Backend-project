@@ -51,6 +51,19 @@ tailwind.config = {
 </head>
 <body class="bg-igBlack h-screen w-screen flex justify-center antialiased">
     
+    <!-- Name Prompt Overlay -->
+    <div id="nameOverlay" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center backdrop-blur-md">
+        <div class="bg-igBlack border border-igBorder p-8 rounded-3xl flex flex-col items-center max-w-sm w-full mx-4 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+            <span class="material-symbols-rounded text-[#3797F0] text-6xl mb-4">account_circle</span>
+            <h2 class="text-2xl font-bold mb-2 text-white text-center">Kafka Stream</h2>
+            <p class="text-sm text-igGrayText mb-6 text-center">Please enter your name to join the cluster event room.</p>
+            <form id="nameForm" class="w-full flex flex-col gap-4">
+                <input type="text" id="initialNameInput" class="bg-igInputBg border border-igBorder rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#3797F0] transition-colors text-center font-semibold text-lg placeholder-igGrayText" placeholder="Your Name" required autocomplete="off">
+                <button type="submit" class="bg-[#3797F0] hover:bg-[#1877F2] text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg active:scale-95">Join Chat</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Centralized Chat Interface -->
     <main class="w-full max-w-4xl h-full flex flex-col border-x border-igBorder bg-igBlack relative">
         
@@ -68,14 +81,8 @@ tailwind.config = {
                 </div>
             </div>
 
-            <!-- Right Side: User Name Switcher -->
-            <div class="flex items-center gap-3 relative">
-                <label for="usernameSelect" class="text-xs text-igGrayText font-semibold uppercase tracking-wider hidden sm:block">Chatting As:</label>
-                <div class="relative bg-igHover rounded-full px-4 py-2 border border-igBorder flex items-center gap-2 cursor-pointer hover:bg-[#262626] transition-colors focus-within:border-igGrayText">
-                    <span class="material-symbols-rounded text-igGrayText text-sm">person</span>
-                    <!-- Simple text input to type whatever name you want -->
-                    <input type="text" id="usernameInput" value="Alex" class="bg-transparent border-none p-0 focus:ring-0 text-sm font-bold text-igPrimaryText w-24 placeholder-igGrayText" placeholder="Enter Name..." autocomplete="off">
-                </div>
+            <!-- Right Side empty to maintain centering spacing if needed -->
+            <div class="flex items-center gap-3 relative min-w-[70px]">
             </div>
 
         </header>

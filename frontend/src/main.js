@@ -5,9 +5,33 @@ const API_BASE = '/api/messages';
 const chatContainer = document.getElementById('chatContainer');
 const chatForm = document.getElementById('chatForm');
 const messageInput = document.getElementById('messageInput');
-const usernameInput = document.getElementById('usernameInput');
 const sendButton = document.getElementById('sendButton');
 const inputActionIcons = document.getElementById('inputActionIcons');
+
+// Setup Name Modal
+const nameOverlay = document.getElementById('nameOverlay');
+const nameForm = document.getElementById('nameForm');
+const initialNameInput = document.getElementById('initialNameInput');
+
+let currentUsername = localStorage.getItem('chatUsername') || '';
+
+if (currentUsername) {
+    nameOverlay.classList.add('hidden');
+} else {
+    // Focus the input when modal is visible
+    setTimeout(() => initialNameInput.focus(), 100);
+}
+
+nameForm.onsubmit = (e) => {
+    e.preventDefault();
+    const name = initialNameInput.value.trim();
+    if (name) {
+        currentUsername = name;
+        localStorage.setItem('chatUsername', currentUsername);
+        nameOverlay.classList.add('hidden');
+        messageInput.focus();
+    }
+};
 
 let lastMessageCount = 0;
 
@@ -48,7 +72,7 @@ function renderMessages(messages) {
       }
   });
   
-  const currentUser = usernameInput.value.trim() || 'Alex';
+  const currentUser = currentUsername || 'Anonymous';
 
   let lastSender = null;
 
@@ -132,9 +156,13 @@ chatForm.onsubmit = async (e) => {
   e.preventDefault();
   
   const text = messageInput.value.trim();
-  const sender = usernameInput.value.trim() || 'Alex';
+  const sender = currentUsername || 'Anonymous';
   
   if (!text) return;
+
+  // Prevent double submissions while sending
+  if (sendButton.disabled) return;
+  sendButton.disabled = true;
   
   messageInput.value = '';
   // Trigger input event manually to reset buttons
@@ -161,6 +189,8 @@ chatForm.onsubmit = async (e) => {
     await fetchMessages();
   } catch (error) {
     console.error('Error sending message:', error);
+  } finally {
+    sendButton.disabled = false;
   }
 };
 
