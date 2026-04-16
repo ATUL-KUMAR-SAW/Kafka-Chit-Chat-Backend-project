@@ -11,8 +11,10 @@ import java.util.logging.Logger;
  */
 public class SimpleKafkaProducer {
     private static final Logger LOGGER = Logger.getLogger(SimpleKafkaProducer.class.getName());
-    private static final int DEFAULT_PARTITIONS = 3;
-    private static final short DEFAULT_REPLICATION = 2;
+    private static final int DEFAULT_PARTITIONS = System.getenv("PARTITION_COUNT") != null 
+            ? Integer.parseInt(System.getenv("PARTITION_COUNT")) : 3;
+    private static final short DEFAULT_REPLICATION = System.getenv("REPLICATION_FACTOR") != null 
+            ? Short.parseShort(System.getenv("REPLICATION_FACTOR")) : 2;
     
     private final SimpleKafkaClient client;
     private final String topic;

@@ -48,5 +48,7 @@ export PORT=$API_PORT
 export BROKER_HOST=localhost
 export BROKER_PORT=9091
 export FRONTEND_DIR=/app/frontend-dist
+export REPLICATION_FACTOR=1
+export PARTITION_COUNT=1
 
 exec java -Xmx128m -cp /app/app.jar com.simplekafka.api.ApiServer
