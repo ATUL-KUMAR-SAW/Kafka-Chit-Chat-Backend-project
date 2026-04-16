@@ -727,7 +727,7 @@ public class SimpleKafkaBroker {
                     followerChannel.connect(new InetSocketAddress(follower.getHost(), follower.getPort()));
 
                     // Prepare replication request
-                    ByteBuffer request = ByteBuffer.allocate(17 + topic.length() + message.length);
+                    ByteBuffer request = ByteBuffer.allocate(19 + topic.length() + message.length);
                     request.put(Protocol.REPLICATE);
                     request.putShort((short) topic.length());
                     request.put(topic.getBytes());

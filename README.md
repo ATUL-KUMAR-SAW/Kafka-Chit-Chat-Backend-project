@@ -1,81 +1,63 @@
-# Build Your Own Kafka 🚀
+<!--
+## Kafka Distributed Messaging Engine for Real-Time Chat
 
-This is a complete implementation of a simplified Kafka-like messaging system built from scratch in Java. This project was developed as part of a final-year Computer Science Engineering project to dive deep into distributed system architectures, consensus algorithms, and message-broker paradigms!
+A ground-up implementation of a highly scalable, fault-tolerant, distributed event streaming system built entirely in Java, inspired by Apache Kafka. This project replaces traditional database chat architectures with a high-throughput, append-only log storage engine.
 
-## 🌟 Key Features
+## Project Overview
 
-* **Custom Topic Partitioning:** Understand how messaging topics are partitioned and mapped to brokers.
-* **Leader Election via ZooKeeper:** The broker nodes autonomously elect a Controller using Apache ZooKeeper to manage the cluster state.
-* **Producer & Consumer API:** End-to-end communication interface using pure Java socket programming.
-* **Fault-tolerant Storage layer:** Sequential log appending simulating real Kafka append-only logs.
-* **Full-Stack Chat UI:** A modern Web Frontend built on Vite that transforms the backend messaging broker into a persistent graphical chat dashboard!
-* **Advanced Resiliency Engine:** Built-in self-healing retry logic to survive broker disconnects seamlessly.
-* **Log Retention Daemon:** Automated background thread that structurally trims old data to enforce enterprise disk storage limits.
-* **Persistent Checkpointing:** Consumers interact directly with ZooKeeper (`/consumers`) paths to track their byte offsets and seamlessly recover message history upon crash/restart.
-* **Semantic Routing Algorithm:** Predictable state distribution mapping sender keys computationally to individual hard-coded cluster partitions preventing chronologic tearing.
+Modern real-time communication platforms require backend systems capable of handling large volumes of concurrent data streams. Traditional synchronous request-response models and centralized databases face severe limitations in scalability and latency. 
 
-## 🛠️ Prerequisites
+This project solves this by introducing a **Custom Distributed Messaging Engine** that leverages partitioned data, asynchronous streaming, and decentralized cluster coordination.
 
-1. **Java 11+**: Ensure you have JDK 11 or higher installed on your machine (`java -version`).
-2. **Apache Maven**: Required to compile the project (`mvn -version`).
-3. **Node.js / npm**: Required for your Frontend UI (`node -v`).
-4. **Apache ZooKeeper**: Essential to coordinate our distributed brokers.
-   - Extract it into a folder (e.g., `C:\zookeeper`)
-   - Inside `zookeeper/conf/`, rename `zoo_sample.cfg` to `zoo.cfg`.
+## Key Architecture Modules
 
-## 📦 Setting Up the Project
+1. **Messaging Engine (Custom Broker)**: The core Java broker handling publisher/subscriber routing, topic partitioning, and offset management.
+2. **API Gateway (Javalin)**: A highly performant REST interface routing HTTP requests from the frontend client into the TCP-based broker network.
+3. **Log Storage Module (Java NIO)**: Bypasses traditional SQL/NoSQL databases in favor of lightning-fast **append-only `.log` files** and `.index` offset tracking via `File-Channel`.
+4. **Distributed Coordination (ZooKeeper)**: Facilitates leader election, partition assignments, and split-brain recovery through dynamic heartbeat tracking.
+5. **Tiered Storage Module**: A cloud archival simulation (`.cloud_bucket`) that automatically rolls off older log segments to maintain local disk optimization.
+6. **Frontend Chat Dashboard**: A responsive, real-time user interface utilizing Vanilla JS, HTML, and Tailwind CSS (served via Vite) designed to continuously poll the backend with minimal latency.
 
-1. Open your terminal in this repository folder (`EP`).
-2. Build the Java cluster backend using Maven:
-   ```bash
-   mvn clean package
-   ```
-3. A `.jar` file will be generated in `target/build-your-own-kafka-1.0-SNAPSHOT.jar`.
-4. Install the frontend Node modules:
-   ```bash
-   cd frontend
-   npm install
-   ```
+## Prerequisites
 
-## ⚙️ Running the Full Project Demo
+* **Java 11+**
+* **Apache Maven** (`mvn`)
+* **Node.js & npm**
+* **Apache ZooKeeper (v3.8+)** (extracted locally with `zoo.cfg` configured)
 
-To elegantly demonstrate this project, you will launch all structural components from bottom to top. 
+## Getting Started
 
-### Step 1: Start ZooKeeper (The Database Coordinator)
-Open a terminal and start your local ZooKeeper instance:
-```cmd
-cd C:\zookeeper\bin
-zkServer.cmd
-```
-
-### Step 2: Start the 3 Kafka Brokers (The Storage Cluster)
-Instead of opening three separate windows manually, you can simply run the automated batch script!
-1. Double-click the file named **`start-cluster.bat`** located in the `EP` folder.
-2. It will automatically pop open 3 windows representing Broker 1, 2, and 3. You will immediately see logs of Broker 1 becoming the Leader/Controller for the cluster!
-
-### Step 3: Start the Backend API Server (The Middleman)
-Now we start the Java Server (Javalin) that routes browser requests into our Kafka Cluster. Open a terminal in the `EP` folder:
+### 1. Build the Backend
+From the root directory (`EP`), package the Java project:
 ```bash
-java -cp target/build-your-own-kafka-1.0-SNAPSHOT.jar com.simplekafka.api.ApiServer
+mvn clean package
 ```
-*(You should see `API Server running on http://localhost:8082`)*
 
-### Step 4: Start the Frontend App (The GUI)
-Open a final terminal inside the `EP/frontend` folder and start the website:
+### 2. Start the Cluster Pipeline
+Run the infrastructure from the bottom-up:
+
+1. **Start ZooKeeper:** Open your Zookeeper bin folder and run `zkServer.cmd`.
+2. **Start the Brokers:** Double click the provided `start-cluster.bat` file to instantly launch your 3-node cluster.
+3. **Start the API Gateway:**
+   ```bash
+   java -cp target/build-your-own-kafka-1.0-SNAPSHOT.jar com.simplekafka.api.ApiServer
+   ```
+
+### 3. Start the Frontend Application
+In a separate terminal, run the Vite development server:
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
 
-### Step 5: Test the End-to-End Flow!
-1. Your terminal will give you a local URL (e.g., `http://localhost:5173`).
-2. Open **two browser tabs** side-by-side using that URL.
-3. In the top right corner of the GUI, set Tab A's name to "Alice" and Tab B's name to "Bob".
-4. Type a message in Alice's tab and hit Send.
-5. Watch the magic happen: The API instantly transforms Alice's text into Byte Packets, routes them through your custom Kafka Producer load-balancing over Partition 0, 1, or 2, stores the bytes permanently on disk, and streams the updates out via your Consumer API so it pops up simultaneously in Bob's tab.
+### 4. Test the End-to-End Flow
+Open `http://localhost:5173` in two separate browser tabs side-by-side. Name one user "Alice" and the other "Bob". Send a message and watch your custom distributed broker handle the request, append it to disk, and synchronize the state instantly!
 
-## 📖 Learn More
-Check out the `PROJECT_REPORT.md` provided in this directory for your Final Year presentation structure. It contains an in-depth breakdown of the distributed system architecture!
+## Documentation
+
+For an in-depth breakdown of the technical specifications, system design, and testing methodology, please review the `PROJECT_REPORT.md` included in this repository.
+
 
 //set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot"
-//set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-11.0.29.7-hotspot"
+-->
