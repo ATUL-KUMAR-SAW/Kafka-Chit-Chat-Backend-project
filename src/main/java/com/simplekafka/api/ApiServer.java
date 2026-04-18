@@ -54,11 +54,19 @@ public class ApiServer {
         Thread.sleep(1500);
 
         this.consumers = new ArrayList<>();
-        // Instead of hardcoding 3 consumers, we run 1 Dynamic Consumer
-        // The Rebalancing engine will automatically detect and assign all available partitions!
-        SimpleKafkaConsumer c = new SimpleKafkaConsumer(brokerHost, brokerPort, TOPIC, "api-server-group-v2");
-        c.initialize();
-        consumers.add(c);
+        
+        // Read partition count to properly subscribe to all partitions
+        int partitionCount = System.getenv("PARTITION_COUNT") != null ? Integer.parseInt(System.getenv("PARTITION_COUNT")) : 3;
+        
+        // Use a unique group ID for every reboot so the API Server always reads from offset 0 
+        // and fully rebuilds its in-memory chat history cache, ignoring old Zookeeper commitments.
+        String uniqueGroupId = "api-server-" + java.util.UUID.randomUUID().toString();
+        
+        for (int i = 0; i < partitionCount; i++) {
+            SimpleKafkaConsumer c = new SimpleKafkaConsumer(brokerHost, brokerPort, TOPIC, i, 0L, uniqueGroupId);
+            c.initialize();
+            consumers.add(c);
+        }
     }
 
     public void start() {
