@@ -15,13 +15,13 @@ const nameForm = document.getElementById('nameForm');
 const initialNameInput = document.getElementById('initialNameInput');
 
 // ── State ──
-let currentUsername = localStorage.getItem('chatUsername') || '';
+let currentUsername = sessionStorage.getItem('chatUsername') || '';
 let lastMessageCount = 0;
 let isSending = false;  // Global lock to prevent any double submissions
 
 // ── Name Modal Logic ──
 if (currentUsername) {
-    // User already joined before — hide overlay immediately
+    // User already joined in this tab session — hide overlay immediately
     nameOverlay.style.display = 'none';
 } else {
     nameOverlay.style.display = 'flex';
@@ -35,7 +35,7 @@ nameForm.onsubmit = (e) => {
     if (!name) return;
     
     currentUsername = name;
-    localStorage.setItem('chatUsername', currentUsername);
+    sessionStorage.setItem('chatUsername', currentUsername);
     nameOverlay.style.display = 'none';
     messageInput.focus();
 };
