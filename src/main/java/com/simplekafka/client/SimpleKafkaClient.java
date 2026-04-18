@@ -162,56 +162,44 @@ public class SimpleKafkaClient {
      * Produce a message to a topic-partition
      */
     public long send(String topic, int partition, byte[] message) throws IOException {
-        int retries = 3;
-        while (retries > 0) {
-            try {
-                if (!topicMetadata.containsKey(topic)) {
-                    refreshMetadata();
-                    if (!topicMetadata.containsKey(topic)) {
-                        throw new IOException("Topic not found: " + topic);
-                    }
-                }
-                
-                TopicMetadata metadata = topicMetadata.get(topic);
-                PartitionInfo partitionInfo = null;
-                for (PartitionInfo info : metadata.getPartitions()) {
-                    if (info.getId() == partition) {
-                        partitionInfo = info;
-                        break;
-                    }
-                }
-                if (partitionInfo == null) throw new IOException("Partition not found: " + partition);
-                
-                BrokerInfo leader = brokers.get(partitionInfo.getLeader());
-                if (leader == null) {
-                    refreshMetadata();
-                    leader = brokers.get(partitionInfo.getLeader());
-                    if (leader == null) throw new IOException("Leader broker not found: " + partitionInfo.getLeader());
-                }
-                
-                try (SocketChannel channel = SocketChannel.open()) {
-                    channel.connect(new InetSocketAddress(leader.getHost(), leader.getPort()));
-                    ByteBuffer request = Protocol.encodeProduceRequest(topic, partition, message);
-                    channel.write(request);
-                    
-                    ByteBuffer response = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
-                    int bytesRead = channel.read(response);
-                    if (bytesRead <= 0) throw new IOException("No data received");
-                    
-                    response.flip();
-                    Protocol.ProduceResult result = Protocol.decodeProduceResponse(response);
-                    if (!result.isSuccess()) throw new IOException("Failed to produce message: " + result.getError());
-                    return result.getOffset();
-                }
-            } catch (IOException e) {
-                retries--;
-                if (retries == 0) throw e;
-                LOGGER.warning("Send failed, retrying. Error: " + e.getMessage());
-                try { Thread.sleep(500); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
-                refreshMetadata(); // Force metadata refresh to find new leader
+        if (!topicMetadata.containsKey(topic)) {
+            refreshMetadata();
+            if (!topicMetadata.containsKey(topic)) {
+                throw new IOException("Topic not found: " + topic);
             }
         }
-        throw new IOException("Failed to send message after retries");
+        
+        TopicMetadata metadata = topicMetadata.get(topic);
+        PartitionInfo partitionInfo = null;
+        for (PartitionInfo info : metadata.getPartitions()) {
+            if (info.getId() == partition) {
+                partitionInfo = info;
+                break;
+            }
+        }
+        if (partitionInfo == null) throw new IOException("Partition not found: " + partition);
+        
+        BrokerInfo leader = brokers.get(partitionInfo.getLeader());
+        if (leader == null) {
+            refreshMetadata();
+            leader = brokers.get(partitionInfo.getLeader());
+            if (leader == null) throw new IOException("Leader broker not found: " + partitionInfo.getLeader());
+        }
+        
+        try (SocketChannel channel = SocketChannel.open()) {
+            channel.connect(new InetSocketAddress(leader.getHost(), leader.getPort()));
+            ByteBuffer request = Protocol.encodeProduceRequest(topic, partition, message);
+            channel.write(request);
+            
+            ByteBuffer response = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
+            int bytesRead = channel.read(response);
+            if (bytesRead <= 0) throw new IOException("No data received");
+            
+            response.flip();
+            Protocol.ProduceResult result = Protocol.decodeProduceResponse(response);
+            if (!result.isSuccess()) throw new IOException("Failed to produce message: " + result.getError());
+            return result.getOffset();
+        }
     }
     
     /**
