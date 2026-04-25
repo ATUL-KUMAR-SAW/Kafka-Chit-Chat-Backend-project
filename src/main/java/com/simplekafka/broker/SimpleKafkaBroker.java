@@ -208,6 +208,11 @@ public class SimpleKafkaBroker {
             String host = args[1];
             int port = Integer.parseInt(args[2]);
             int zkPort = args.length > 3 ? Integer.parseInt(args[3]) : 2181;
+            
+            // Attach HTTP log handler to push logs back to the API Server
+            java.util.logging.Logger.getLogger("").addHandler(
+                new com.simplekafka.logging.HttpLogHandler("Broker-" + brokerId, "http://localhost:8082/api/admin/logs")
+            );
 
             SimpleKafkaBroker broker = new SimpleKafkaBroker(brokerId, host, port, zkPort);
             broker.start();

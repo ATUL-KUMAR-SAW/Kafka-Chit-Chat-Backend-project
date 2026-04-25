@@ -12,6 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import io.javalin.websocket.WsContext;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,9 +33,18 @@ public class ApiServer {
     
     // In-memory cache of all sorted chat messages fetched from Kafka
     private final List<MessageObj> chatHistory = Collections.synchronizedList(new ArrayList<>());
+    
+    // Cluster Dashboard WebSockets State
+    private static final Set<WsContext> dashboardClients = ConcurrentHashMap.newKeySet();
+    private static final List<String> logCache = Collections.synchronizedList(new ArrayList<>());
+    private static final int MAX_LOGS = 1000;
 
     public static void main(String[] args) {
         try {
+            // Register custom loopback HTTP logger to catch all JVM logs
+            Logger.getLogger("").addHandler(
+                new com.simplekafka.logging.HttpLogHandler("API-Server", "http://localhost:8082/api/admin/logs")
+            );
             new ApiServer().start();
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to start API Server", e);
@@ -90,6 +102,42 @@ public class ApiServer {
 
         app.get("/api/messages", this::getMessages);
         app.post("/api/messages", this::sendMessage);
+
+        // ── Administrator Cluster Dashboard Endpoints ──
+        
+        // Receives log messages POSTed from any local Broker or Zookeeper process
+        app.post("/api/admin/logs", ctx -> {
+            String logJson = ctx.body();
+            synchronized (logCache) {
+                logCache.add(logJson);
+                if (logCache.size() > MAX_LOGS) {
+                    logCache.remove(0);
+                }
+            }
+            
+            for (WsContext client : dashboardClients) {
+                if (client.session.isOpen()) {
+                    client.send(logJson);
+                }
+            }
+            ctx.status(200);
+        });
+
+        // Broadcasts real-time logs to the browser dashboard via WebSockets
+        app.ws("/api/logs/stream", ws -> {
+            ws.onConnect(ctx -> {
+                dashboardClients.add(ctx);
+                List<String> cacheCopy;
+                synchronized (logCache) {
+                    cacheCopy = new ArrayList<>(logCache);
+                }
+                for (String logJson : cacheCopy) {
+                    ctx.send(logJson);
+                }
+            });
+            ws.onClose(ctx -> dashboardClients.remove(ctx));
+            ws.onError(ctx -> dashboardClients.remove(ctx));
+        });
 
         LOGGER.info("API Server running on http://localhost:" + port);
 
